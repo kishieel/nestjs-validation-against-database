@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  nestjs:
+    container_name: nestjs
+    image: "node:16"
+    working_dir: /app
+    ports:
+      - "${NESTJS_PORT:-3000}:3000"
+    expose:
+      - "${NESTJS_PORT:-3000}"
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "${NESTJS_PORT:-3000}"
+      NODE_ENV: "development"
+      FORCE_COLOR: "1"
+      DATABASE_URL: $DATABASE_URL
+    restart: "unless-stopped"
+    volumes:
+      - "./:/app:delegated"
+      - "~/.yarn/docker-cache:/home/node/.cache/yarn:cached"
+      - "~/.npm/docker-cache:/home/node/.npm:cached"
+    networks:
+      - app_network
+    command: "bash -c 'yarn && yarn start:dev'"
+
+  mysql:
+    container_name: mysql
+    image: "mysql:8"
+    restart: "unless-stopped"
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    expose:
+      - "${MYSQL_PORT:-3306}"
+    volumes:
+      - mysql:/var/lib/mysql
+    networks:
+      - app_network
+    environment:
+      MYSQL_ROOT_PASSWORD: "root"
+
+volumes:
+  mysql: null
+
+networks:
+  app_network: null
